@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "pihole-synchronized.fullname" . }}
+spec:
+{{- if .Values.ingress.useTls }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.host }}
+  {{- if .Values.ingress.tlsSecret }}
+    secretName:  {{ .Values.ingress.tlsSecret }}
+    {{- else }}
+    secretName: {{ include "pihole-synchronized.fullname" . }}-tls
+    {{- end}}
+  {{- end }}
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http: 
+      paths:
+      - backend:
+          service:
+            name: {{ include "pihole-synchronized.fullname" . }}-http
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific

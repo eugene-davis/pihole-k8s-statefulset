@@ -1,0 +1,89 @@
+# Default values for pihole-synchronized.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+piholeAdminPass: password
+
+replicaCount: 2
+
+image:
+  repository: pihole/pihole
+  tag: 2022.02.1
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  # Annotations to add to the service account
+  annotations: {}
+  name: ""
+
+# UID or user to run init container as
+initSecurityContext:
+  runAsUser: 999 # pihole user uid
+  runAsGroup: 999 # pihole group uid
+
+initContainer:
+  image:
+    repository: eugenedavis/pihole-sync
+    pullPolicy: IfNotPresent
+    tag: 0.1.2
+  backup_mount: /mnt/backup
+  pihole_svc_mount: /mnt/pihole-pvc
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In
+              values:
+              - "{{ .Release.Name }}"
+        topologyKey: "kubernetes.io/hostname"
+
+tolerations: []
+
+volumeClaimTemplates:
+  dnsmasqPvc:
+    storage: 100Mi
+    storageClassName: retain-local-path
+  piholePvc:
+    storage: 1Gi
+    storageClassName: retain-local-path
+
+backupVolumeClaim:
+  storage: 500Mi
+  storageClassName: nfs-client
+
+loadBalancer:
+  ip: 192.168.0.2
+  sharedIpKey: pihole-svc
+  addressPool: default
+
+# See https://github.com/pi-hole/docker-pi-hole#environment-variables
+environmentalVariables:
+  TZ: "Europe/Berlin"
+  DNSSEC: "true"
+  DNS_BOGUS_PRIV: "true"
+  DNS_FQDN_REQUIRED: "true"
+  PIHOLE_DNS_: "208.67.222.222;208.67.220.220" # OpenDNS
+  FTLCONF_REPLY_ADDR4: 192.168.0.2 # Should match loadBalancer ip
+  FTLCONF_MOZILLA_CANARY: "true"
+  WEBPASSWORD_FILE: /mnt/webpassword
+
+# Populates /etc/pihole/custom.list
+customDomains: ""
+
+ingress:
+  host: pihole.example.com
+  useTls: true
+  # Set equal to an existing TLS secret to use for ingress, otherwise leave empty to create a new one from the provided data
+  tlsSecret: ""
+  ingressClassName: nginx
+  key: ""
+  cert: ""
+
+syncJob:
+  schedule: "00 */3 * * *" # Every three hours
+  ttlSecondsAfterFinished: 10800 # 3 hours

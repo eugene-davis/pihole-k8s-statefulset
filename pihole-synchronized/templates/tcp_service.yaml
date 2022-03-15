@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pihole-synchronized.fullname" . }}-tcp
+  annotations:
+    metallb.universe.tf/address-pool: {{ .Values.loadBalancer.addressPool }}
+    metallb.universe.tf/allow-shared-ip: {{ .Values.loadBalancer.sharedIpKey }}
+spec:
+  externalTrafficPolicy: Local
+  loadBalancerIP: {{ .Values.loadBalancer.ip }}
+  ports:
+    - port: 53
+      targetPort: 53
+      protocol: TCP
+      name: port53
+  selector:
+    {{- include "pihole-synchronized.selectorLabels" . | nindent 4 }}
+  type: LoadBalancer
