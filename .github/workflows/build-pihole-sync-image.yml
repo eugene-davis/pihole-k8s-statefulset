@@ -3,6 +3,8 @@ name: pihole-sync-image Build and Push
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'pihole-sync-image/**'
 
 jobs:
   docker:
