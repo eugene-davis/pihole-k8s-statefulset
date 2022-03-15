@@ -31,4 +31,4 @@ jobs:
           context: ./pihole-sync-image
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: eugenedavis/pihole-sync:0.1.2
+          tags: eugenedavis/pihole-sync:0.1.3
