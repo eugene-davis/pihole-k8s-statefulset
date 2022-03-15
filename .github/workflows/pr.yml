@@ -6,6 +6,8 @@ on:
 jobs:
   python-pr:
     runs-on: ubuntu-latest
+    env:
+      working_dir: "pihole-sync-image"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -19,10 +21,13 @@ jobs:
         run: python -m pip install --upgrade pip
 
       - name: Install dev dependencies
-        run: pip install -r pihole-sync-image/dev_requirements.txt
+        run: pip install -r dev_requirements.txt
+        working-directory: ${{ env.working_dir }}
 
       - name: Check Black formatting has been applied
-        run: black --check pihole-sync-image/pihole_sync.py
+        run: black --check pihole_sync.py
+        working-directory: ${{ env.working_dir }}
 
       - name: Check pylint passes
-        run: pylint pihole-sync-image/pihole_sync.py
+        run: pylint pihole_sync.py
+        working-directory: ${{ env.working_dir }}
