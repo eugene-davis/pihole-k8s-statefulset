@@ -1,0 +1,21 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build and Push Docker image
+      run: |
+        docker login --username ${{ secrets.DOCKER_LOGIN }} --password  ${{ secrets.DOCKER_TOKEN }}
+        docker build . --file Dockerfile --tag eugenedavis/pihole-sync:0.1.1
+        docker push eugenedavis/pihole-sync:0.1.1
