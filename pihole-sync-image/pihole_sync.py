@@ -1,3 +1,7 @@
+"""
+Synchronizes pihole instances running in a StatefulSet.
+Only executes from within a pod (cannot be externally executed).
+"""
 import argparse
 import logging
 import sqlite3
@@ -8,6 +12,9 @@ import kubernetes
 
 
 def main():
+    """
+    CLI execution
+    """
     parser = argparse.ArgumentParser(description="Sync Pihole Statefulset")
     parser.add_argument("name", type=str, help="Name of Pihole Statefulset")
     parser.add_argument(
@@ -49,7 +56,7 @@ def main():
         namespace = args.namespace
     else:
         with open(
-            "/run/secrets/kubernetes.io/serviceaccount/namespace", "r"
+            "/run/secrets/kubernetes.io/serviceaccount/namespace", "r", encoding="utf8"
         ) as namespace_file:
             namespace = namespace_file.readline()
 
@@ -90,7 +97,7 @@ def initialize_sync(
         logging.info("Database has not changed, not performing sync.")
         return
 
-    api_instance = get_api_instance(type="core")
+    api_instance = get_api_instance(api="core")
     # Don't synchronize if first pod isn't running
     if not is_first_pod_running(name, namespace, api_instance):
         logging.error("Primary pod %s not running, aborting synchronization!", pod_name)
@@ -111,7 +118,7 @@ def scheduled_sync(
         logging.info("Database has not changed, not performing sync.")
         return
 
-    api_instance = get_api_instance(type="app")
+    api_instance = get_api_instance(api="app")
     original_replica_count = get_current_replica_count(name, namespace, api_instance)
     logging.info("Got %s replicas from StatefulSet/%s", original_replica_count, name)
 
@@ -123,25 +130,31 @@ def scheduled_sync(
     set_new_replica_amount(name, namespace, api_instance, original_replica_count)
 
 
-def get_api_instance(type: str):
+def get_api_instance(api: str):
     """
     Get API instance from pod's config
     """
-    config = kubernetes.config.load_incluster_config()
+    config = (  # pylint: disable=assignment-from-no-return
+        kubernetes.config.load_incluster_config()
+    )
 
     with kubernetes.client.ApiClient(config) as api_client:
-        if type == "app":
-            return kubernetes.client.AppsV1Api(api_client)
-        if type == "core":
-            return kubernetes.client.CoreV1Api(api_client)
+        if api == "app":
+            client_instance = kubernetes.client.AppsV1Api(api_client)
+        if api == "core":
+            client_instance = kubernetes.client.CoreV1Api(api_client)
         else:
             logging.error(
-                "Unsupported API client type requested %s, must be app or core.", type
+                "Unsupported API client api set requested %s, must be app or core.", api
             )
             raise RuntimeError("Unsupported type requested")
+    return client_instance
 
 
 def is_first_pod_running(sts_name, namespace, api_instance) -> bool:
+    """
+    Queries kubernetes to see if the first pod in the StatefulSet is running.
+    """
     primary_name = f"{sts_name}-0"
     try:
         primary_pod_response = api_instance.read_namespaced_pod(primary_name, namespace)
@@ -151,8 +164,10 @@ def is_first_pod_running(sts_name, namespace, api_instance) -> bool:
     # Look for Ready and return its condition
     for condition in primary_pod_response.status.conditions:
         if condition.type == "Ready":
-            # If false or unknown, return false
-            return True if condition.status == "True" else False
+            # If false or unknown, return false - pylint thinks this can be simplified but bool("False") and bool("Unknown") are both true
+            return (  # pylint: disable=simplifiable-if-expression
+                True if condition.status == "True" else False
+            )
     logging.warning("Unable to find Ready condition for pod %s", primary_name)
     return False
 
