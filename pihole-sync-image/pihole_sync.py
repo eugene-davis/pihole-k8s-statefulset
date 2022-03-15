@@ -141,13 +141,13 @@ def get_api_instance(api: str):
     with kubernetes.client.ApiClient(config) as api_client:
         if api == "app":
             client_instance = kubernetes.client.AppsV1Api(api_client)
-        if api == "core":
+        elif api == "core":
             client_instance = kubernetes.client.CoreV1Api(api_client)
         else:
             logging.error(
                 "Unsupported API client api set requested %s, must be app or core.", api
             )
-            raise RuntimeError("Unsupported type requested")
+            raise RuntimeError("Unsupported api requested")
     return client_instance
 
 
