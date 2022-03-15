@@ -1,8 +1,8 @@
 [bumpversion]
-current_version = 0.1.1
+current_version = 0.1.2
 commit = True
 tag = True
 tag_name = pihole-sync-image-{new_version}
 message = Bump version: pihole-sync-image {current_version} → {new_version}
 
-[bumpversion:.github/workflows/build-pihole-sync-image.yml]
+[bumpversion:file:.github/workflows/build-pihole-sync-image.yml]
