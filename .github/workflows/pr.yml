@@ -1,9 +1,7 @@
-name: pihole-sync-image Build and Push
-
+name: PR Checks
 on:
   pull_request:
-    paths:
-      - 'pihole-sync-image/**'
+    branch: [ main ]
 
 jobs:
   python-pr:
@@ -25,3 +23,6 @@ jobs:
 
       - name: Check Black formatting has been applied
         run: black --check pihole-sync-image/pihole_sync.py
+
+      - name: Check pylint passes
+        run: pylint pihole-sync-image/pihole_sync.py
