@@ -5,7 +5,7 @@ metadata:
   name: {{ include "pihole-synchronized.fullname" . }}-statefulset-scale
 subjects:
 - kind: ServiceAccount
-  name: {{ include "pihole-synchronized.fullname" . }}
+  name: {{ include "pihole-synchronized.serviceAccountName" . }}
 roleRef:
   kind: Role
   name: {{ include "pihole-synchronized.fullname" . }}-syncer

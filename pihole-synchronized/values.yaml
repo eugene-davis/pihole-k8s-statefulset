@@ -2,25 +2,29 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Change me!
 piholeAdminPass: password
 
+# Number of pihole replicas to deploy
 replicaCount: 2
-
-image:
-  repository: pihole/pihole
-  tag: 2022.02.1
-  pullPolicy: IfNotPresent
 
 serviceAccount:
   # Annotations to add to the service account
   annotations: {}
   name: ""
 
+# Detail of pihole image to deploy
+image:
+  repository: pihole/pihole
+  tag: 2022.02.1
+  pullPolicy: IfNotPresent
+
 # UID or user to run init container as
 initSecurityContext:
   runAsUser: 999 # pihole user uid
   runAsGroup: 999 # pihole group uid
 
+# Init and sync container details, only change if you know what you are doing
 initContainer:
   image:
     repository: eugenedavis/pihole-sync
@@ -29,6 +33,7 @@ initContainer:
   backup_mount: /mnt/backup
   pihole_svc_mount: /mnt/pihole-pvc
 
+# By default strongly encourages but does not force Kubernetes to schedule all pods on different nodes, see below for enforcing separate nodes
 affinity:
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
@@ -41,9 +46,21 @@ affinity:
               values:
               - "{{ .Release.Name }}"
         topologyKey: "kubernetes.io/hostname"
+# Remove the previous affinity configuration and uncomment this one to enforce separate nodes for each pod
+# affinity:
+#   podAntiAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#     - labelSelector:
+#         matchExpressions:
+#           - key: app.kubernetes.io/instance
+#             operator: In
+#             values:
+#             - "{{ .Release.Name }}"
+#       topologyKey: "kubernetes.io/hostname"
 
 tolerations: []
 
+# Volumes to use with the stateful set
 volumeClaimTemplates:
   dnsmasqPvc:
     storage: 100Mi
@@ -52,13 +69,15 @@ volumeClaimTemplates:
     storage: 1Gi
     storageClassName: retain-local-path
 
+# Volumes to use for sychronization
 backupVolumeClaim:
   storage: 500Mi
   storageClassName: nfs-client
 
+# Configure LoadBalancer
 loadBalancer:
   ip: 192.168.0.2
-  sharedIpKey: pihole-svc
+  sharedIpKey: pihole-svc # Set if you will share the IP with services other than Pihole
   addressPool: default
 
 # See https://github.com/pi-hole/docker-pi-hole#environment-variables
