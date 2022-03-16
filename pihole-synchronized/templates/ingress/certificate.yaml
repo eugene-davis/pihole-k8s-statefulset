@@ -1,0 +1,17 @@
+{{- if not .Values.ingress.tlsSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "pihole-synchronized.fullname" . }}-tls
+stringData:
+{{- with .Values.ingress.cert }}
+  tls.crt: |
+  {{- toString . | nindent 4 }}
+{{- end }}
+
+{{- with .Values.ingress.key }}
+  tls.key: |
+  {{- toString . | nindent 4 }}
+{{- end }}
+type: kubernetes.io/tls
+{{- end -}}

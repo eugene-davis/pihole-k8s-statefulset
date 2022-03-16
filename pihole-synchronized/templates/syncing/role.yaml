@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "pihole-synchronized.fullname" . }}-syncer
+rules:
+- apiGroups: ["apps"]
+  resources: ["statefulsets/scale"]
+  resourceNames: ["{{ include "pihole-synchronized.fullname" . }}"]
+  verbs: ["get", "patch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  resourceNames: ["{{ include "pihole-synchronized.fullname" . }}-0"]
+  verbs: ["get"]

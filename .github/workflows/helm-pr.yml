@@ -1,0 +1,21 @@
+name: Helm PR Checks
+on:
+  pull_request:
+    branch: [ main ]
+    paths:
+      - 'pihole-synchronized/**'
+
+jobs:
+  helms-pr:
+    runs-on: ubuntu-latest
+    env:
+      working_dir: "pihole-sync-image"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+
+      - name: Lint pihole-synchronized
+        run: helm lint pihole-synchronized

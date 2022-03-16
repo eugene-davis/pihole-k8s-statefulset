@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "pihole-synchronized.fullname" . }}-db-backup
+  labels:
+     {{- include "pihole-synchronized.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.backupVolumeClaim.storage }}
+  storageClassName: {{ .Values.backupVolumeClaim.storageClassName }}

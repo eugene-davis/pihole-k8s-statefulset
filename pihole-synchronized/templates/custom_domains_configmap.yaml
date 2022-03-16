@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pihole-synchronized.fullname" . }}-config-files
+data:
+{{- if .Values.customDomains }}
+  {{- with .Values.customDomains }}
+  custom.list: |
+  {{- toString . | nindent 4 }}
+  {{- end }}
+{{- else }}
+  custom.list: ""
+{{- end -}}
