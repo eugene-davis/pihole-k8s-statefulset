@@ -50,9 +50,26 @@ See `pihole-synchronized/values.yaml` for all values, the following table lists 
 | syncJob.schedule |  "00 */3 * * *" | Cron configuration for synchronization job, default runs every three hours. |
 | syncJob.ttlSecondsAfterFinished | 10800 | Time to leave individual sync jobs around before cleaning them up. |
 
+### Installing
+
+Add the repository:
+
+```bash
+helm repo add pihole-synchronized https://eugene-davis.github.io/pihole-k8s-statefulset/
+```
+
+Install the chart:
+
+```bash
+helm install pihole pihole-synchronized --values values.yaml
+```
+
 ### Initial Sync
 
 Prior to the initial synchronization, replicas will be unable to start as the init container will be unable to retrieve a copy of `gravity.db`.
-To solve this, you can immedialely execute an instance of the `pihole-sync` cronjob with `kubectl -n pihole create job --from=cronjob/pihole-sync initial-sync`.
-Check its completion with `kubectl -n pihole get job initial-sync`.
-Clean up with `kubectl -n pihole delete job initial-sync`.
+
+To solve this, you can immedialely execute an instance of the `pihole-sync` cronjob with `kubectl create job --from=cronjob/pihole-test-pihole-synchronized-sync initial-sync`.
+
+Check its completion with `kubectl get job initial-sync`.
+
+Clean up with `kubectl delete job initial-sync`.
