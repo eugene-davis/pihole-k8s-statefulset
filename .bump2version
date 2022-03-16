@@ -7,3 +7,7 @@ message = Bump version: pihole-synchronized helm chart {current_version} → {ne
 [bumpversion:file:pihole-synchronized/Chart.yaml]
 search = version: {current_version}
 replace = version: {new_version}
+
+[bumpversion:file:.github/workflows/package-helm-chart.yml]
+search = version: {current_version}
+replace = version: {new_version}
