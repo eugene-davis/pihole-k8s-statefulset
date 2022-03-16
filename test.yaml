@@ -1,0 +1,395 @@
+---
+# Source: pihole-synchronized/templates/service_account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: RELEASE-NAME-pihole-synchronized
+automountServiceAccountToken: false
+---
+# Source: pihole-synchronized/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: RELEASE-NAME-pihole-synchronized-secret
+type: Opaque
+stringData:
+    webpassword: password
+---
+# Source: pihole-synchronized/templates/custom_domains_configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: RELEASE-NAME-pihole-synchronized-config-files
+data:
+  custom.list: ""
+---
+# Source: pihole-synchronized/templates/env_configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: RELEASE-NAME-pihole-synchronized-config-env
+data:
+    DNS_BOGUS_PRIV: "true"
+    DNS_FQDN_REQUIRED: "true"
+    DNSSEC: "true"
+    FTLCONF_MOZILLA_CANARY: "true"
+    FTLCONF_REPLY_ADDR4: 192.168.0.2
+    PIHOLE_DNS_: 208.67.222.222;208.67.220.220
+    TZ: Europe/Berlin
+    WEBPASSWORD_FILE: /mnt/webpassword
+---
+# Source: pihole-synchronized/templates/backup_pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: RELEASE-NAME-pihole-synchronized-db-backup
+  labels:
+    helm.sh/chart: pihole-synchronized-0.1.0
+    app.kubernetes.io/name: pihole-synchronized
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "2022.02.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Mi
+  storageClassName: nfs-client
+---
+# Source: pihole-synchronized/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: RELEASE-NAME-pihole-synchronized-syncer
+rules:
+- apiGroups: ["apps"]
+  resources: ["statefulsets/scale"]
+  resourceNames: ["RELEASE-NAME-pihole-synchronized"]
+  verbs: ["get", "patch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  resourceNames: ["RELEASE-NAME-pihole-synchronized-0"]
+  verbs: ["get"]
+---
+# Source: pihole-synchronized/templates/rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: RELEASE-NAME-pihole-synchronized-statefulset-scale
+subjects:
+- kind: ServiceAccount
+  name: RELEASE-NAME-pihole-synchronized-syncer
+roleRef:
+  kind: Role
+  name: RELEASE-NAME-pihole-synchronized-syncer
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: pihole-synchronized/templates/http_service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: RELEASE-NAME-pihole-synchronized-http
+spec:
+  ports:
+    - port: 80
+      name: http
+  selector:
+    statefulset.kubernetes.io/pod-name: RELEASE-NAME-pihole-synchronized-0  # Only expose first pod for the web-ui
+---
+# Source: pihole-synchronized/templates/pihole_headless_service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: RELEASE-NAME-pihole-synchronized
+  labels:
+    helm.sh/chart: pihole-synchronized-0.1.0
+    app.kubernetes.io/name: pihole-synchronized
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "2022.02.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http
+      protocol: TCP
+    - port: 53
+      targetPort: 53
+      protocol: TCP
+      name: port53
+    - port: 53
+      targetPort: 53
+      protocol: UDP
+      name: port53-udp
+    - port: 67
+      targetPort: 67
+      protocol: UDP
+      name: port67-udp
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: pihole-synchronized
+    app.kubernetes.io/instance: RELEASE-NAME
+---
+# Source: pihole-synchronized/templates/tcp_service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: RELEASE-NAME-pihole-synchronized-tcp
+  annotations:
+    metallb.universe.tf/address-pool: default
+    metallb.universe.tf/allow-shared-ip: pihole-svc
+spec:
+  externalTrafficPolicy: Local
+  loadBalancerIP: 192.168.0.2
+  ports:
+    - port: 53
+      targetPort: 53
+      protocol: TCP
+      name: port53
+  selector:
+    app.kubernetes.io/name: pihole-synchronized
+    app.kubernetes.io/instance: RELEASE-NAME
+  type: LoadBalancer
+---
+# Source: pihole-synchronized/templates/udp_service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: RELEASE-NAME-pihole-synchronized-udp
+  annotations:
+    metallb.universe.tf/address-pool: default
+    metallb.universe.tf/allow-shared-ip: pihole-svc
+spec:
+  externalTrafficPolicy: Local
+  loadBalancerIP: 192.168.0.2
+  ports:
+    - port: 53
+      targetPort: 53
+      protocol: UDP
+      name: port53-udp
+    - port: 67
+      targetPort: 67
+      protocol: UDP
+      name: port67-udp
+  selector:
+    app.kubernetes.io/name: pihole-synchronized
+    app.kubernetes.io/instance: RELEASE-NAME
+  type: LoadBalancer
+---
+# Source: pihole-synchronized/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: RELEASE-NAME-pihole-synchronized
+  labels:
+    helm.sh/chart: pihole-synchronized-0.1.0
+    app.kubernetes.io/name: pihole-synchronized
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "2022.02.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pihole-synchronized
+      app.kubernetes.io/instance: RELEASE-NAME
+  replicas: 1
+  serviceName: RELEASE-NAME-pihole-synchronized
+  template:
+    metadata:
+
+      labels:
+        app.kubernetes.io/name: pihole-synchronized
+        app.kubernetes.io/instance: RELEASE-NAME
+    spec:
+      serviceAccountName: RELEASE-NAME-pihole-synchronized
+      automountServiceAccountToken: true
+      initContainers:
+        - name: RELEASE-NAME-pihole-synchronized-db-sync
+          image: "eugenedavis/pihole-sync:0.1.2"
+          imagePullPolicy: IfNotPresent
+          args:
+            - pihole
+            - --init
+            - --backup-mount
+            - /mnt/backup
+            - --pihole-pvc-mount
+            - /mnt/pihole-pvc
+          securityContext:
+            runAsGroup: 999
+            runAsUser: 999
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          volumeMounts:
+            - name: db-backup
+              mountPath: /mnt/backup
+            - name: pihole-pvc
+              mountPath: /mnt/pihole-pvc
+      containers:
+        - name: db-init-sync
+          image: "pihole/pihole:2022.02.1"
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - dig +short +norecurse +retry=0 @127.0.0.1 pi.hole || exit 1
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          envFrom:
+            - configMapRef:
+                name: RELEASE-NAME-pihole-synchronized-pihole-config-env
+          volumeMounts:
+            - name: pihole-pvc
+              mountPath: '/etc/pihole'
+            - name: dnsmasq-pvc
+              mountPath: '/etc/dnsmasq.d'
+            - name: custom-lists
+              mountPath: /etc/pihole/custom.list
+              subPath: custom.list
+            - name: webpassword
+              mountPath: /mnt/webpassword
+              subPath: webpassword
+
+      restartPolicy: Always
+      volumes:
+        - name: pihole-pvc
+          persistentVolumeClaim:
+            claimName: RELEASE-NAME-pihole-synchronized-pvc
+        - name: custom-lists
+          configMap:
+            name: RELEASE-NAME-pihole-synchronized-config-files
+            items:
+            - key: custom.list
+              path: custom.list
+        - name: webpassword
+          secret:
+            secretName: RELEASE-NAME-pihole-synchronized-secret
+            items:
+            - key: webpassword
+              path: webpassword
+        - name: RELEASE-NAME-pihole-synchronized-db-backup
+          persistentVolumeClaim:
+            claimName: db-backup
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/instance
+                  operator: In
+                  values:
+                  - 'RELEASE-NAME'
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+
+  volumeClaimTemplates:
+    - metadata:
+        name: RELEASE-NAME-pihole-synchronized-dnsmasq-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Mi
+        storageClassName: retain-local-path
+    - metadata:
+        name: RELEASE-NAME-pihole-synchronized-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: retain-local-path
+---
+# Source: pihole-synchronized/templates/sync_job.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: RELEASE-NAME-pihole-synchronized-sync
+spec:
+  schedule: 00 */3 * * *
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 10800
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: RELEASE-NAME-pihole-synchronized
+          automountServiceAccountToken: true
+          containers:
+          - name: db-sync
+            image: "eugenedavis/pihole-sync:0.1.2"
+            args:
+              - pihole
+            securityContext:
+              runAsGroup: 999
+              runAsUser: 999
+            env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            volumeMounts:
+            - name: db-backup
+              mountPath: /mnt/backup
+            - name: RELEASE-NAME-pihole-synchronized-0
+              mountPath: /mnt/pihole-pvc
+
+          volumes:
+          - name: db-backup
+            persistentVolumeClaim:
+              claimName: RELEASE-NAME-pihole-synchronized-db-backup
+          - name: pihole-0
+            persistentVolumeClaim:
+              claimName: pihole-pvc-RELEASE-NAME-pihole-synchronized-0
+---
+# Source: pihole-synchronized/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: RELEASE-NAME-pihole-synchronized
+spec:
+  tls:
+  - hosts:
+    - pihole.example.com
+    secretName: RELEASE-NAME-pihole-synchronized-tls
+  ingressClassName: nginx
+  rules:
+  - host: pihole.example.com
+    http: 
+      paths:
+      - backend:
+          service:
+            name: RELEASE-NAME-pihole-synchronized-http
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+---
+# Source: pihole-synchronized/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "RELEASE-NAME-pihole-synchronized-test-connection"
+  labels:
+    helm.sh/chart: pihole-synchronized-0.1.0
+    app.kubernetes.io/name: pihole-synchronized
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "2022.02.1"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['RELEASE-NAME-pihole-synchronized-http:80']
+  restartPolicy: Never

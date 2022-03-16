@@ -1,0 +1,56 @@
+customDomains: |
+  192.168.1.1 router.techpropaganda.com
+  192.168.1.21 office.techpropaganda.com
+  192.168.1.21 photo-frame-server.techpropaganda.com
+  192.168.1.21 pihole2.techpropaganda.com
+  192.168.1.21 piserver1.techpropaganda.com
+  192.168.1.21 plex.techpropaganda.com
+  192.168.1.22 bw.techpropaganda.com
+  192.168.1.22 datacrow.techpropaganda.com
+  192.168.1.22 gogs.techpropaganda.com
+  192.168.1.22 pihole.techpropaganda.com
+  192.168.1.22 pihole1.techpropaganda.com
+  192.168.1.22 piserver2.techpropaganda.com
+  192.168.1.41 photoframe.techpropaganda.com
+  172.22.49.175 seattle.techpropaganda.com
+  192.168.1.22 prometheus.techpropaganda.com
+  192.168.1.22 grafana.techpropaganda.com
+  192.168.1.21 podgrab.techpropaganda.com
+  192.168.1.22 alertmanager.techpropaganda.com
+  192.168.1.23 vortigern.techpropaganda.com
+  192.168.1.42 kodi.techpropaganda.com
+  192.168.1.42 ks3master.techpropaganda.com
+  192.168.1.223 registry.techpropaganda.com
+  192.168.1.223 firefly.techpropaganda.com
+  192.168.1.223 booksonic.techpropaganda.com
+  192.168.1.24 engelbert.techpropaganda.com
+  192.168.1.25 ganesh.techpropaganda.com
+  192.168.1.223 paperless.techpropaganda.com
+  192.168.1.25 nfs.techpropaganda.com
+  192.168.1.223 nextcloud.techpropaganda.com
+  192.168.1.223 home.techpropaganda.com
+
+ingress:
+  host: pihole-test.techpropaganda.com
+  tlsSecret: wildcard-tls
+
+loadBalancer:
+  ip: 192.168.1.11
+  sharedIpKey: pihole-svc
+  addressPool: basic-infra
+
+piholeAdminPass: test
+
+environmentalVariables:
+  FTLCONF_REPLY_ADDR4: 192.168.1.11
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+          - key: app.kubernetes.io/instance
+            operator: In
+            values:
+            - "{{ .Release.Name }}"
+      topologyKey: "kubernetes.io/hostname"
