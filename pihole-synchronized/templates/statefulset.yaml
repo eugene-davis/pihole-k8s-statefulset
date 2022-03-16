@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "pihole-synchronized.fullname" . }}
+  labels:
+    {{- include "pihole-synchronized.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "pihole-synchronized.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ include "pihole-synchronized.fullname" . }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      labels:
+        {{- include "pihole-synchronized.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "pihole-synchronized.serviceAccountName" . }}
+      automountServiceAccountToken: true
+      initContainers:
+        - name: db-sync
+          image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+          imagePullPolicy: {{ .Values.initContainer.image.pullPolicy }}
+          args:
+            - {{ include "pihole-synchronized.fullname" . }}
+            - --init
+            - --backup-mount
+            - {{ .Values.initContainer.backup_mount }}
+            - --pihole-pvc-mount
+            - {{ .Values.initContainer.pihole_svc_mount }}
+          {{- with .Values.initSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          volumeMounts:
+            - name: db-backup
+              mountPath: {{ .Values.initContainer.backup_mount }}
+            - name: pihole-pvc
+              mountPath: {{ .Values.initContainer.pihole_svc_mount }}
+      containers:
+        - name: pihole
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - dig +short +norecurse +retry=0 @127.0.0.1 pi.hole || exit 1
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          envFrom:
+            - configMapRef:
+                name: {{ include "pihole-synchronized.fullname" . }}-config-env
+          volumeMounts:
+            - name: pihole-pvc
+              mountPath: '/etc/pihole'
+            - name: dnsmasq-pvc
+              mountPath: '/etc/dnsmasq.d'
+            - name: custom-lists
+              mountPath: /etc/pihole/custom.list
+              subPath: custom.list
+            - name: webpassword
+              mountPath: /mnt/webpassword
+              subPath: webpassword
+
+      restartPolicy: Always
+      volumes:
+        - name: pihole-pvc
+          persistentVolumeClaim:
+            claimName: {{ include "pihole-synchronized.fullname" . }}-pvc
+        - name: custom-lists
+          configMap:
+            name: {{ include "pihole-synchronized.fullname" . }}-config-files
+            items:
+            - key: custom.list
+              path: custom.list
+        - name: webpassword
+          secret:
+            secretName: {{ include "pihole-synchronized.fullname" . }}-secret
+            items:
+            - key: webpassword
+              path: webpassword
+        - name: db-backup
+          persistentVolumeClaim:
+            claimName:  {{ include "pihole-synchronized.fullname" . }}-db-backup
+
+      affinity:
+      {{- with .Values.affinity }}
+      {{- tpl (. | toYaml | nindent 8) $ }}
+      {{- end }}
+
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+  volumeClaimTemplates:
+    - metadata:
+        name: dnsmasq-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.dnsmasqPvc.storage }}
+        storageClassName: {{ .Values.volumeClaimTemplates.dnsmasqPvc.storageClassName }}
+    - metadata:
+        name: pihole-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.piholePvc.storage }}
+        storageClassName: {{ .Values.volumeClaimTemplates.piholePvc.storageClassName }}

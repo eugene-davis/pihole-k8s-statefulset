@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: statefulset-scale
+  name: {{ include "pihole-synchronized.fullname" . }}-statefulset-scale
+subjects:
+- kind: ServiceAccount
+  name: {{ include "pihole-synchronized.fullname" . }}
+roleRef:
+  kind: Role
+  name: {{ include "pihole-synchronized.fullname" . }}-syncer
+  apiGroup: rbac.authorization.k8s.io
