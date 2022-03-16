@@ -1,0 +1,34 @@
+name: Deploy Helm Chart to chart-repo
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'pihole-synchronized/**'
+jobs:
+  build-repo:
+    env:
+      version: 0.1.1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: 'main'
+          path: 'main'
+      - uses: actions/checkout@v2
+        with:
+          ref: 'chart-repo'
+          path: 'chart-repo'   
+      - uses: azure/setup-helm@v1
+      - name: Sync Helm chart-repo
+        run: |
+          helm package ../main/pihole-synchronized/
+          helm repo index .
+        working-directory: chart-repo/
+      - name: Commit repo changes
+        run: |
+          git config user.email "<>"
+          git config user.name "pihole-synchronized GH Actions Bot"
+          git add --all
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update chart-repo to version ${{ env.version }}"
+          git push
+        working-directory: chart-repo
