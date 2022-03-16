@@ -3,7 +3,18 @@ entries:
   pihole-synchronized:
   - apiVersion: v2
     appVersion: 2022.02.1
-    created: "2022-03-16T10:52:23.6181421Z"
+    created: "2022-03-16T13:46:18.512135814Z"
+    description: Deploys a Pihole StatefulSet with replication between pods
+    digest: 2e698c4c26ed2e1bd5180c94a6a0c4f17324300e1fc4d9062ccef47d1b229705
+    icon: https://wp-cdn.pi-hole.net/wp-content/uploads/2018/12/pihole-text-logo-white.png
+    name: pihole-synchronized
+    type: application
+    urls:
+    - pihole-synchronized-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: 2022.02.1
+    created: "2022-03-16T13:46:18.511286205Z"
     description: Deploys a Pihole StatefulSet with replication between pods
     digest: 750bfcd2ec57deca8db7b6d6365458f78d05f18ff5e077e6ce265367cc5c9055
     icon: https://wp-cdn.pi-hole.net/wp-content/uploads/2018/12/pihole-text-logo-white.png
@@ -14,7 +25,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 2022.02.1
-    created: "2022-03-16T10:52:23.617477662Z"
+    created: "2022-03-16T13:46:18.510425395Z"
     description: Deploys a Pihole StatefulSet with replication between pods
     digest: f86419bbc6485c62922aa087f0061807936fef49fd23f7bd564d6033e79d434b
     icon: https://wp-cdn.pi-hole.net/wp-content/uploads/2018/12/pihole-text-logo-white.png
@@ -23,4 +34,4 @@ entries:
     urls:
     - pihole-synchronized-0.1.0.tgz
     version: 0.1.0
-generated: "2022-03-16T10:52:23.615667761Z"
+generated: "2022-03-16T13:46:18.507905867Z"
