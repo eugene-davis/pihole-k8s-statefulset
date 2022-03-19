@@ -63,13 +63,3 @@ Install the chart:
 ```bash
 helm install pihole pihole-synchronized --values values.yaml
 ```
-
-### Initial Sync
-
-Prior to the initial synchronization, replicas will be unable to start as the init container will be unable to retrieve a copy of `gravity.db`.
-
-To solve this, you can immedialely execute an instance of the `pihole-sync` cronjob with `kubectl create job --from=cronjob/pihole-test-pihole-synchronized-sync initial-sync`.
-
-Check its completion with `kubectl get job initial-sync`.
-
-Clean up with `kubectl delete job initial-sync`.
