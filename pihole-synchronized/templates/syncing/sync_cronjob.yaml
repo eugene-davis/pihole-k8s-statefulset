@@ -1,0 +1,8 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "pihole-synchronized.fullname" . }}-sync
+spec:
+  schedule: {{ .Values.syncJob.schedule }}
+  jobTemplate:
+    {{- include "sync-job" . | indent 4 }}

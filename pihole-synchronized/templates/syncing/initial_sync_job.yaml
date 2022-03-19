@@ -1,0 +1,5 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "pihole-synchronized.fullname" . }}-initial-sync
+{{- include "sync-job" . }}
