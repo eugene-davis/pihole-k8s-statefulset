@@ -32,7 +32,7 @@ See `pihole-synchronized/values.yaml` for all values, the following table lists 
 
 | Variable | Default | Explaination |
 | -- | -- | -- |
-| piholeAdminPass | password | Change this before deploying to be the password you want used with the web interface. |
+| piholeAdminPass | password | Set this before deploying to be the password you want used with the web interface, or leave empty to provide the password as an environmental variable or in a volume mount. |
 | replicaCount | 2 | Number of pihole pods to deploy |
 | image | multi-value | Details for the pihole image to deploy. |
 | initSecurityContext | multi-value | user and group to execute the init and sync containers under, change with caution as it may block startup of non-primary pods |
@@ -41,6 +41,8 @@ See `pihole-synchronized/values.yaml` for all values, the following table lists 
 | loadBalancer.ip | 192.168.0.2 | Set to your desired DNS IP |
 | loadBalancer.addressPool | default | Set to the appropriate IP pool for Metallb |
 | environmentalVariables | multi-value | See [Pihole Environmental Values](https://github.com/pi-hole/docker-pi-hole#environment-variables) |
+| volumeMounts | [] | Allows setting a list of custom volume mounts |
+| volumes | [] | Allows setting a list of custom volumes |
 | customDomains | Empty | Provide contents of `/etc/pihole/custom.list` to configure local domains |
 | ingress.host | pihole.example.com | Configure host for Ingress to configure |
 | ingress.useTls | true | Enable TLS - strongly encouraged even for local networks |
