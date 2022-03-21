@@ -69,9 +69,14 @@ spec:
             - name: custom-lists
               mountPath: /etc/pihole/custom.list
               subPath: custom.list
+            {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.piholeAdminPass }}
             - name: webpassword
               mountPath: /mnt/webpassword
               subPath: webpassword
+            {{- end }}
 
       restartPolicy: Always
       volumes:
@@ -84,12 +89,17 @@ spec:
             items:
             - key: custom.list
               path: custom.list
+        {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.piholeAdminPass }}
         - name: webpassword
           secret:
             secretName: {{ include "pihole-synchronized.fullname" . }}-secret
             items:
             - key: webpassword
               path: webpassword
+        {{- end }}
         - name: db-backup
           persistentVolumeClaim:
             claimName:  {{ include "pihole-synchronized.fullname" . }}-db-backup

@@ -2,8 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# Change me!
-piholeAdminPass: password
+# Can set here to add a secret with the password
+# Alternatively can be set in the environment, or mounted with volumes and volumeMounts
+piholeAdminPass: ""
 
 # Number of pihole replicas to deploy
 replicaCount: 2
@@ -90,6 +91,10 @@ environmentalVariables:
   FTLCONF_REPLY_ADDR4: 192.168.0.2 # Should match loadBalancer ip
   FTLCONF_MOZILLA_CANARY: "true"
   WEBPASSWORD_FILE: /mnt/webpassword
+
+# Mount in a volume(s)
+volumeMounts: []
+volumes: []
 
 # Populates /etc/pihole/custom.list
 customDomains: ""
