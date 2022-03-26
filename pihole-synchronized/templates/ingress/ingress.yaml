@@ -9,7 +9,7 @@ spec:
     - {{ .Values.ingress.host }}
   {{- if .Values.ingress.tlsSecret }}
     secretName:  {{ .Values.ingress.tlsSecret }}
-    {{- else }}
+    {{- else if .Values.ingress.cert and .Values.ingress.key }}
     secretName: {{ include "pihole-synchronized.fullname" . }}-tls
     {{- end}}
   {{- end }}

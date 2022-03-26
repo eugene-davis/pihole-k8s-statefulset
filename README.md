@@ -46,7 +46,7 @@ See `pihole-synchronized/values.yaml` for all values, the following table lists 
 | customDomains | Empty | Provide contents of `/etc/pihole/custom.list` to configure local domains |
 | ingress.host | pihole.example.com | Configure host for Ingress to configure |
 | ingress.useTls | true | Enable TLS - strongly encouraged even for local networks |
-| ingress.tlsSecret | Empty | Conf be configured with an existing TLS certificate for the Ingress to use, leave blank to create a new one (cert and key must be provided) |
+| ingress.tlsSecret | Empty | Set equal to an existing TLS secret to use for ingress, leave blank to create a new secret from the key and cert data, or leave all three blank to not set a TLS secret |
 | ingress.key | Empty | Private key to create a TLS secret with. Manage key material with care! |
 | ingress.cert | Empty | Certificate to create a TLS secret with. |
 | syncJob.schedule |  "00 */3 * * *" | Cron configuration for synchronization job, default runs every three hours. |
