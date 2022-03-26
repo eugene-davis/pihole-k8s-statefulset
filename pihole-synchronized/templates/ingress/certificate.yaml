@@ -1,4 +1,4 @@
-{{- if not (and (and .Values.ingress.key .Values.ingress.cert) .Values.ingress.tlsSecret) }}
+{{- if or (and .Values.ingress.key .Values.ingress.cert) .Values.ingress.tlsSecret }}
 apiVersion: v1
 kind: Secret
 metadata:
