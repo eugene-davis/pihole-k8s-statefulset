@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pihole_sync"
-version = "0.1.3"
+version = "0.2.0"
 description = "Syncs gravity.db for PiHoles"
 authors = ["Eugene Davis <eugene@eugenemdavis.net>"]
 license = "GPLv3"
