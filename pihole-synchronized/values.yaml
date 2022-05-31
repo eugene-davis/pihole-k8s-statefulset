@@ -17,7 +17,7 @@ serviceAccount:
 # Detail of pihole image to deploy
 image:
   repository: pihole/pihole
-  tag: 2022.02.1
+  tag: 2022.05
   pullPolicy: IfNotPresent
 
 # UID or user to run init container as
@@ -30,7 +30,7 @@ initContainer:
   image:
     repository: eugenedavis/pihole-sync
     pullPolicy: IfNotPresent
-    tag: 0.1.3
+    tag: 0.2.0
   backup_mount: /mnt/backup
   pihole_svc_mount: /mnt/pihole-pvc
 

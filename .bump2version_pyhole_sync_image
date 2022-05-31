@@ -1,5 +1,5 @@
 [bumpversion]
-current_version = 0.1.3
+current_version = 0.2.0
 commit = True
 tag = False
 message = Bump version: pihole-sync-image {current_version} → {new_version}
@@ -9,3 +9,7 @@ message = Bump version: pihole-sync-image {current_version} → {new_version}
 [bumpversion:file:pihole-synchronized/values.yaml]
 search = tag: {current_version}
 replace = tag: {new_version}
+
+[bumpversion:file:pihole-sync-image/pyproject.toml]
+search = version = "{current_version}"
+replace = version = "{new_version}"
