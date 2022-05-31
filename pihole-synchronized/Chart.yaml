@@ -3,6 +3,6 @@ name: pihole-synchronized
 description: Deploys a Pihole StatefulSet with replication between pods
 
 type: application
-version: 0.3.2
+version: 0.3.3
 appVersion: "2022.02.1"
 icon: https://wp-cdn.pi-hole.net/wp-content/uploads/2018/12/pihole-text-logo-white.png
