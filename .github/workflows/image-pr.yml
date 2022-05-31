@@ -44,11 +44,11 @@ jobs:
         working-directory: ${{ env.working_dir }}
 
       - name: Check Black formatting has been applied
-        run: poetry run black --check pihole_sync.py
+        run: poetry run black --check .
         working-directory: ${{ env.working_dir }}
 
       - name: Check pylint passes
-        run: poetry run pylint pihole_sync.py
+        run: poetry run pylint pihole_sync/
         working-directory: ${{ env.working_dir }}
 
       - name: Get current version
