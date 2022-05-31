@@ -1,10 +1,11 @@
-FROM python:3.9.10-alpine3.15
+FROM python:3.9.13-alpine3.16
 
 RUN mkdir /pihole-sync
 
-COPY pihole_sync.py /pihole-sync/pihole_sync.py
-COPY requirements.txt /requirements.txt
+COPY . /pihole-sync/
 
-RUN python -mvenv /pihole-sync/venv && /pihole-sync/venv/bin/pip install -r /requirements.txt && chown 999 -R /pihole-sync && rm  /requirements.txt
+WORKDIR /pihole-sync
 
-ENTRYPOINT [ "/pihole-sync/venv/bin/python", "/pihole-sync/pihole_sync.py" ]
+RUN python -mvenv /pihole-sync/venv && /pihole-sync/venv/bin/python -m pip install --no-cache-dir --upgrade pip && /pihole-sync/venv/bin/pip install --no-cache-dir . && chown 999 -R /pihole-sync
+
+ENTRYPOINT [ "/pihole-sync/venv/bin/pihole_sync" ]
