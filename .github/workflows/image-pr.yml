@@ -35,8 +35,8 @@ jobs:
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
 
-      - name: Install poetry
-        run: pip install poetry
+      - name: Install poetry and bump2version
+        run: pip install 'poetry>=1.0.0' 'bump2version==1.0.1'
         working-directory: ${{ env.working_dir }}
 
       - name: Install package
