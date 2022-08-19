@@ -1,5 +1,9 @@
 # Pihole StatefulSet with Pod Syncing
 
+## Project Abandonment
+
+**This project has been abandoned and archived, as I have replaced it with [Blocky](https://github.com/0xERR0R/blocky).**
+
 This configuration will deploy Pihole as a StatefulSet on Kubernetes, and provide sychronization using the code found in `pihole-sync-image`.
 
 ## What it Does
